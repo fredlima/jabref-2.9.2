@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -166,6 +167,7 @@ public class JabRefFrame extends JFrame implements OutputPrinter {
       about = new HelpAction("About JabRef", helpDiag,
                              GUIGlobals.aboutPage, Globals.lang("About JabRef"),
                              GUIGlobals.getIconUrl("about")),
+      jabRefWebsite = new JabRefWebsiteAction(),
       editEntry = new GeneralAction("edit", "Edit entry",
                                Globals.lang("Edit entry"),
                                prefs.getKey("Edit entry")),
@@ -209,18 +211,19 @@ public class JabRefFrame extends JFrame implements OutputPrinter {
       copy = new EditAction("copy", GUIGlobals.getIconUrl("copy")),
       paste = new EditAction("paste", GUIGlobals.getIconUrl("paste")),
       cut = new EditAction("cut", GUIGlobals.getIconUrl("cut")),
+      markRed = new MarkRedAction(),
       mark = new GeneralAction("markEntries", "Mark entries",
                                Globals.lang("Mark entries"),
                                prefs.getKey("Mark entries")),
-       unmark = new GeneralAction("unmarkEntries", "Unmark entries",
+      unmark = new GeneralAction("unmarkEntries", "Unmark entries",
                                   Globals.lang("Unmark entries"),
                                   prefs.getKey("Unmark entries")),
-       unmarkAll = new GeneralAction("unmarkAll", "Unmark all"),
-       toggleRelevance = new GeneralAction(
+      unmarkAll = new GeneralAction("unmarkAll", "Unmark all"),
+      toggleRelevance = new GeneralAction(
     		   Relevance.getInstance().getValues().get(0).getActionName(), 
     		   Relevance.getInstance().getValues().get(0).getMenuString(),
     		   Relevance.getInstance().getValues().get(0).getToolTipText()),
-       toggleQualityAssured = new GeneralAction(
+      toggleQualityAssured = new GeneralAction(
 				Quality.getInstance().getValues().get(0).getActionName(),
 				Quality.getInstance().getValues().get(0).getMenuString(),
 				Quality.getInstance().getValues().get(0).getToolTipText()),
@@ -356,6 +359,7 @@ public class JabRefFrame extends JFrame implements OutputPrinter {
     dbImport = new DbImportAction(this).getAction(),
     //downloadFullText = new GeneralAction("downloadFullText", "Look up full text document",
     //        Globals.lang("Follow DOI or URL link and try to locate PDF full text document")),
+    setTableFont = new SetTableFontAction(),
     increaseFontSize = new IncreaseTableFontSizeAction(),
     decreseFontSize = new DecreaseTableFontSizeAction(),
     installPlugin = new PluginInstallerAction(this),
@@ -1282,6 +1286,7 @@ public JabRefPreferences prefs() {
       edit.add(copyKeyAndTitle);
       //edit.add(exportToClipboard);
       edit.addSeparator();
+      edit.add(markRed);
       edit.add(mark);
       JMenu markSpecific = subMenu("Mark specific color");
       for (int i=0; i<Util.MAX_MARKING_LEVEL; i++)
@@ -1339,6 +1344,7 @@ public JabRefPreferences prefs() {
       view.add(prevTab);
       view.add(sortTabs);
       view.addSeparator();
+      view.add(setTableFont);
       view.add(increaseFontSize);
       view.add(decreseFontSize);
       view.addSeparator();
@@ -1438,6 +1444,7 @@ public JabRefPreferences prefs() {
       helpMenu.add(errorConsole);
       helpMenu.addSeparator();
       helpMenu.add(about);
+      helpMenu.add(jabRefWebsite);
       mb.add(helpMenu);
   }
 
@@ -2518,6 +2525,55 @@ class SaveSessionAction
             bibtexKeyPatternDialog.setVisible(true);
         }
        
+    }
+    
+    class SetTableFontAction extends MnemonicAwareAction {
+        public SetTableFontAction() {
+            putValue(NAME, "Set table font");
+        }
+        
+        public void actionPerformed(ActionEvent e) {
+        	 Font f=new FontSelectorDialog(JabRefFrame.this, GUIGlobals.CURRENTFONT).getSelectedFont();
+        	 
+	         if(f==null)
+	        	 return;
+	         else
+	        	 GUIGlobals.CURRENTFONT = f;
+	         
+	         // updatefont
+	         prefs.put("fontFamily", GUIGlobals.CURRENTFONT.getFamily());
+	         prefs.putInt("fontStyle", GUIGlobals.CURRENTFONT.getStyle());
+	         prefs.putInt("fontSize", GUIGlobals.CURRENTFONT.getSize());
+	         
+	         if (tabbedPane.getTabCount() > 0) {
+	        	 for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+	        		 baseAt(i).updateTableFont();
+	        		 baseAt(i).repaint();
+	        	 }
+	         }
+        }
+    }
+    
+    class MarkRedAction extends MnemonicAwareAction {
+        public MarkRedAction() {
+            putValue(NAME, "Mark with red");
+        }
+        public void actionPerformed(ActionEvent e) {
+        	
+        }
+    }
+    
+    class JabRefWebsiteAction extends MnemonicAwareAction {
+        public JabRefWebsiteAction() {
+            putValue(NAME, "JabRef Website");
+        }
+        public void actionPerformed(ActionEvent e) {
+        	try {
+                Desktop.getDesktop().browse(new URL("http://jabref.sourceforge.net/").toURI());
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
+        }
     }
 
     class IncreaseTableFontSizeAction extends MnemonicAwareAction {

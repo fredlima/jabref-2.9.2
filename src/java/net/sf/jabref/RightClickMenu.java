@@ -111,15 +111,16 @@ public class RightClickMenu extends JPopupMenu
                 } catch (Throwable ex) {}
             }
         });
+        
         addSeparator();
-
+        
         JMenu markSpecific = JabRefFrame.subMenu("Mark specific color");
         JabRefFrame frame = panel.frame;
         for (int i=0; i<Util.MAX_MARKING_LEVEL; i++)
             markSpecific.add(new MarkEntriesAction(frame, i).getMenuItem());
-
+               
         if (multiple) {
-            add(new AbstractAction(Globals.lang("Mark entries"), GUIGlobals.getImage("markEntries")) {
+        	add(new AbstractAction(Globals.lang("Mark entries"), GUIGlobals.getImage("markEntries")) {
                 public void actionPerformed(ActionEvent e) {
                     try {
                         panel.runCommand("markEntries");
@@ -161,7 +162,7 @@ public class RightClickMenu extends JPopupMenu
             }
             addSeparator();
         }
-
+        
         if (Globals.prefs.getBoolean(SpecialFieldsUtils.PREF_SPECIALFIELDSENABLED)) {
         	if (Globals.prefs.getBoolean(SpecialFieldsUtils.PREF_SHOWCOLUMN_RANKING)) {
         		populateSpecialFieldMenu(this.rankingMenu, Rank.getInstance(), panel.frame);
